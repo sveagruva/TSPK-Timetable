@@ -1,0 +1,2 @@
+rootProject.name='TSPK timetable'
+include ':app'
