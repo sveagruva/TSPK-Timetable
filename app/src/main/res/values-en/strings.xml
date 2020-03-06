@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TSPK timetable</string>
+    <string name="chooseGroup">Choose group</string>
+    <string name="timetebleText">Timetable</string>
+    <string name="untilPara">before classes start:</string>
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+</resources>

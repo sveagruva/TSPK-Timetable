@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">TSPK timetable</string>
+    <string name="app_name">ТСПК расписание</string>
+    <string name="chooseGroup" translatable="false">Выберите группу</string>
+    <string name="timetebleText" translatable="false">Расписангие</string>
+    <string name="untilPara" translatable="false">До начала пары осталось:</string>
+    <string name="today" translatable="false">Сегодня</string>
+    <string name="tomorrow" translatable="false">Завтра</string>
 </resources>
