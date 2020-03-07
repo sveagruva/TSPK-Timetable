@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -37,6 +38,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Time;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -56,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private static TextView TLesson5;
     private static TextView TLesson6;
     private static TextView TLesson7;
-    private static TextView BeforeClases;
+    private static TextView BeforeClasses;
     private static TextView Choose;
     private static Button Todaybtn;
     private static Button Tomorrowbtn;
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private static int MaxLength;
     private static int MaxHeight;
     private static String url;
+    private static String text;
     public static String currentGroup;
     private static Boolean Istoday;
     private static Boolean Change;
@@ -80,6 +83,11 @@ public class MainActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.hide();
         }
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        if(Calendar.SATURDAY == calendar.get(Calendar.DAY_OF_WEEK)){
+            Tomorrowbtn.setText(getString(R.string.TheDayAfterTomorrow));
+        }
         Timer();
         Change = false;
         sPref = getSharedPreferences("Group", MODE_PRIVATE);
@@ -93,21 +101,6 @@ public class MainActivity extends AppCompatActivity {
         }else{
             Choose.setText(currentGroup);
         }
-    }
-
-    private static void Timer() {
-        
-        new CountDownTimer(20000, 60000) {
-            public void onTick(long millisUntilFinished) {
-
-
-
-                BeforeClases.setText("до начала пар" + millisUntilFinished / 1000);
-            }
-            public void onFinish() {
-                BeforeClases.setText("Бабах!");
-            }
-        }.start();
     }
 
     @Override
@@ -148,7 +141,6 @@ public class MainActivity extends AppCompatActivity {
             }else{
                 day = "0" + calendar.get(Calendar.DAY_OF_MONTH);
             }
-//            day = "05";
             if(calendar.get(Calendar.MONTH) - 10 > 0){
                 month = (calendar.get(Calendar.MONTH) + 1) + "";
             }else{
@@ -162,14 +154,17 @@ public class MainActivity extends AppCompatActivity {
             Tomorrowbtn.setEnabled(false);
             String month;
             String day;
+            if(Calendar.SATURDAY == calendar.get(Calendar.DAY_OF_WEEK)){
+                calendar.add(Calendar.DAY_OF_MONTH,1);
+            }
             calendar.add(Calendar.DAY_OF_MONTH, 1);
-            if(calendar.get(Calendar.DAY_OF_MONTH) - 10 > 0){
+            if(calendar.get(Calendar.DAY_OF_MONTH) - 10 >= 0){
                 day = calendar.get(Calendar.DAY_OF_MONTH) + "";
             }else{
                 day = "0" + calendar.get(Calendar.DAY_OF_MONTH);
             }
 
-            if(calendar.get(Calendar.MONTH) - 10 > 0){
+            if(calendar.get(Calendar.MONTH) - 10 >= 0){
                 month = (calendar.get(Calendar.MONTH) + 1) + "";
             }else{
                 month = "0" + (calendar.get(Calendar.MONTH)+ 1);
@@ -177,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
 
 
             String data = day + "." + month + "." + year;
+
             DoEverything("http://tspk.org/images/raspisanie/" + data + ".xls");
         }
 
@@ -276,7 +272,6 @@ public class MainActivity extends AppCompatActivity {
                     HSSFRow row1;
                     for(int i = 0; i < MaxLength/2; i++){
                         Groups.add(row.getCell(ItIsCorner).getStringCellValue());
-                        //Log.i("Les", row.getCell(ItIsCorner).getStringCellValue());
                         GoDown = GoRow;
                         GoDown++;
                         row1 = ExcelSheet.getRow(GoDown);
@@ -519,6 +514,78 @@ public class MainActivity extends AppCompatActivity {
         return -1;
     }
 
+    private void  Timer() {
+        text = "";
+        Date date = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        long millislnFuture = 0;
+        millislnFuture += 65 - calendar.get(Calendar.SECOND);
+        long hours = calendar.get(Calendar.HOUR);
+        if(calendar.get(Calendar.AM_PM) == Calendar.PM){
+            hours += 12;
+        }
+        long minutes = calendar.get(Calendar.MINUTE);
+        minutes += hours * 60;
+        Log.i("ogogo", minutes + "");
+        if (minutes >= 510 && minutes < 1035) {
+            if (minutes < 600) { //1
+                millislnFuture += (600 - minutes) * 60000;text += getString(R.string.untilBreak);
+            }
+            if (minutes >= 600 && minutes < 620) {
+                millislnFuture += (620 - minutes) * 60000;text += getString(R.string.untilPara);
+            }
+            if (minutes >= 620 && minutes < 710) { //2
+                millislnFuture += (710 - minutes) * 60000;text += getString(R.string.untilBreak);
+            }
+            if (minutes >= 710 && minutes < 745) {
+                millislnFuture += (745 - minutes) * 60000;text += getString(R.string.untilPara);
+            }
+            if (minutes >= 745 && minutes < 835) { //3
+                millislnFuture += (835 - minutes) * 60000;text += getString(R.string.untilBreak);
+            }
+            if (minutes >= 835 && minutes < 845) {
+                millislnFuture += (845 - minutes) * 60000;text += getString(R.string.untilPara);
+            }
+            if (minutes >= 845 && minutes < 935) { //4
+                millislnFuture += (935 - minutes) * 60000;text += getString(R.string.untilBreak);
+            }
+            if (minutes >= 935 && minutes < 945) {
+                millislnFuture += (945 - minutes) * 60000;text += getString(R.string.untilPara);
+            }
+            if (minutes >= 945) { //5
+                millislnFuture += (1035 - minutes) * 60000;text += getString(R.string.untilBreak);
+            }
+        }else{
+            text += getString(R.string.untilClasses);
+            if (minutes >= 1035) {
+                millislnFuture += (1440 - minutes) * 60000;
+                minutes = 0;
+            }
+            millislnFuture += (510 - minutes) * 60000;
+        }
+
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        if (dayOfWeek == 7) {
+            millislnFuture += 86400000;
+        }
+        new CountDownTimer(millislnFuture, 60000) {
+            public void onTick(long millisUntilFinished) {
+                String hui_minutes = String.valueOf(millisUntilFinished / 60000 % 60);
+                BeforeClasses.setText(text + " " + (millisUntilFinished / 60000 / 60) + ":" + (millisUntilFinished / 60000 % 60 < 10 ? "0" + (millisUntilFinished / 60000 % 60) : millisUntilFinished / 60000 % 60));
+            }
+            public void onFinish() {
+                final Handler handler = new Handler();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Timer();
+                    }
+                });
+            }
+        }.start();
+    }
+
     private void InizializateLessonsViews() {
         TLesson1 = findViewById(R.id.lesson1);
         TLesson2 = findViewById(R.id.lesson2);
@@ -527,7 +594,7 @@ public class MainActivity extends AppCompatActivity {
         TLesson5 = findViewById(R.id.lesson5);
         TLesson6 = findViewById(R.id.lesson6);
         TLesson7 = findViewById(R.id.lesson7);
-        BeforeClases = findViewById(R.id.BeforeClases);
+        BeforeClasses = findViewById(R.id.BeforeClases);
         Todaybtn = findViewById(R.id.btnToday);
         Tomorrowbtn = findViewById(R.id.btnTomorrow);
         Choose = findViewById(R.id.GroupChose);

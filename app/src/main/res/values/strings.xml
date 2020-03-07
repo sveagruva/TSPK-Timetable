@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">ТСПК расписание</string>
-    <string name="chooseGroup" translatable="false">Выберите группу</string>
-    <string name="timetebleText" translatable="false">Расписангие</string>
-    <string name="untilPara" translatable="false">До начала пары осталось:</string>
-    <string name="today" translatable="false">Сегодня</string>
-    <string name="tomorrow" translatable="false">Завтра</string>
+    <string name="chooseGroup">Выберите группу</string>
+    <string name="timetableText">Расписангие</string>
+    <string name="untilPara">До начала пары осталось:</string>
+    <string name="untilClasses">До начала пар осталось:</string>
+    <string name="untilBreak">До конца пары осталось:</string>
+    <string name="today">Сегодня</string>
+    <string name="tomorrow">Завтра</string>
+    <string name="TheDayAfterTomorrow">Послезавтра</string>
 </resources>

@@ -2,8 +2,11 @@
 <resources>
     <string name="app_name">TSPK timetable</string>
     <string name="chooseGroup">Choose group</string>
-    <string name="timetebleText">Timetable</string>
-    <string name="untilPara">before classes start:</string>
+    <string name="timetableText">Timetable</string>
+    <string name="untilPara">Before couples start:</string>
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
+    <string name="untilClasses">Before classes start:</string>
+    <string name="untilBreak">Until the end of the pair there are:</string>
+    <string name="TheDayAfterTomorrow">Day after tomorrow</string>
 </resources>

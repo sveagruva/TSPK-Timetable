@@ -43,14 +43,12 @@ public class ChooseGroup extends AppCompatActivity {
         spin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                //Toast.makeText(ChooseGroup.this, "" + ForSpinner.get(position), Toast.LENGTH_SHORT).show();
                 if(!(ForSpinner.get(position).equals("Нажмите для выбора группы"))){
                     SharedPreferences sPref = getSharedPreferences("Group", MODE_PRIVATE);
                     SharedPreferences.Editor ed = sPref.edit();
                     ed.putString("Group", ForSpinner.get(position));
                     ed.commit();
                     MainActivity.currentGroup = ForSpinner.get(position);
-                    //spin.getAdapter().clear();
                     finish();
                 }
             }
