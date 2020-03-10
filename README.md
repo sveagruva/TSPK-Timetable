@@ -1,4 +1,4 @@
-## TSPK Timetable(расписание тспк, андроид приложение)
+# TSPK Timetable(расписание тспк, андроид приложение)
 Android app for http://tspk.org
 
 ## For download:
