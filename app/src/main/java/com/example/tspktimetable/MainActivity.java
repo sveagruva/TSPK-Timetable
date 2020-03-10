@@ -83,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.hide();
         }
+        MyReceiver receiver = new MyReceiver();
+        receiver.onReceive(this, new Intent());
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         if(Calendar.SATURDAY == calendar.get(Calendar.DAY_OF_WEEK)){
@@ -136,12 +138,12 @@ public class MainActivity extends AppCompatActivity {
             Tomorrowbtn.setEnabled(true);
             String month;
             String day;
-            if(calendar.get(Calendar.DAY_OF_MONTH) - 10 > 0){
+            if(calendar.get(Calendar.DAY_OF_MONTH) - 9 > 0){
                 day = calendar.get(Calendar.DAY_OF_MONTH) + "";
             }else{
                 day = "0" + calendar.get(Calendar.DAY_OF_MONTH);
             }
-            if(calendar.get(Calendar.MONTH) - 10 > 0){
+            if(calendar.get(Calendar.MONTH) - 9 > 0){
                 month = (calendar.get(Calendar.MONTH) + 1) + "";
             }else{
                 month = "0" + (calendar.get(Calendar.MONTH)+ 1);
@@ -158,13 +160,13 @@ public class MainActivity extends AppCompatActivity {
                 calendar.add(Calendar.DAY_OF_MONTH,1);
             }
             calendar.add(Calendar.DAY_OF_MONTH, 1);
-            if(calendar.get(Calendar.DAY_OF_MONTH) - 10 >= 0){
+            if(calendar.get(Calendar.DAY_OF_MONTH) - 9 >= 0){
                 day = calendar.get(Calendar.DAY_OF_MONTH) + "";
             }else{
                 day = "0" + calendar.get(Calendar.DAY_OF_MONTH);
             }
 
-            if(calendar.get(Calendar.MONTH) - 10 >= 0){
+            if(calendar.get(Calendar.MONTH) - 9 >= 0){
                 month = (calendar.get(Calendar.MONTH) + 1) + "";
             }else{
                 month = "0" + (calendar.get(Calendar.MONTH)+ 1);
@@ -172,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
 
 
             String data = day + "." + month + "." + year;
-
             DoEverything("http://tspk.org/images/raspisanie/" + data + ".xls");
         }
 
@@ -192,7 +193,9 @@ public class MainActivity extends AppCompatActivity {
     private void DoEverything(String url){
         download task = new download();
         try {
+
             File file = task.execute(url, getCacheDir() + "/hi.xls").get();
+            Log.i("logs", url);
             Log.i("logs", file.getAbsolutePath() + " " + file.length());
             getArrays(file);
             file.delete();
@@ -477,6 +480,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
         return len;
+
     }
 
     private static int GetLengnhtOfTable(HSSFSheet sheet){
