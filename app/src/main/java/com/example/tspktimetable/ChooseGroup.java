@@ -2,25 +2,25 @@ package com.example.tspktimetable;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.Toast;
+import android.widget.Switch;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class ChooseGroup extends AppCompatActivity {
 
+    private Switch dark;
+    private Switch correct;
     private Spinner spin;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +34,7 @@ public class ChooseGroup extends AppCompatActivity {
         final ArrayList<String> hui = intent.getStringArrayListExtra("arrayGroups");
         final ArrayList<String> ForSpinner = new ArrayList<String>();
         ForSpinner.clear();
-        ForSpinner.add("Нажмите для выбора группы");
+        ForSpinner.add(getString(R.string.TapForChoose));
         ForSpinner.addAll(hui);
         spin = findViewById(R.id.spinner);
         ArrayAdapter<String> adp1 = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, ForSpinner);
@@ -43,11 +43,11 @@ public class ChooseGroup extends AppCompatActivity {
         spin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                if(!(ForSpinner.get(position).equals("Нажмите для выбора группы"))){
+                if(!(ForSpinner.get(position).equals(getString(R.string.TapForChoose)))){
                     SharedPreferences sPref = getSharedPreferences("Group", MODE_PRIVATE);
                     SharedPreferences.Editor ed = sPref.edit();
                     ed.putString("Group", ForSpinner.get(position));
-                    ed.commit();
+                    ed.apply();
                     MainActivity.currentGroup = ForSpinner.get(position);
                     finish();
                 }
@@ -57,5 +57,27 @@ public class ChooseGroup extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parentView) {
             }
         });
+        SharedPreferences Switches = getSharedPreferences("Switches", MODE_PRIVATE);
+        dark = findViewById(R.id.darkmode);
+        correct = findViewById(R.id.correct);
+        dark.setChecked(Switches.getBoolean("dark", false));
+        correct.setChecked(Switches.getBoolean("correct", false));
+    }
+
+
+    public void Switches(View view) {
+        SharedPreferences.Editor Switches = getSharedPreferences("Switches", MODE_PRIVATE).edit();
+        if(view == findViewById(R.id.darkmode)){
+            Switches.putBoolean("dark", dark.isChecked());
+            if(dark.isChecked()){
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            }else{
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+            }
+        }
+        if(view == findViewById(R.id.correct)){
+            Switches.putBoolean("correct", correct.isChecked());
+        }
+        Switches.apply();
     }
 }

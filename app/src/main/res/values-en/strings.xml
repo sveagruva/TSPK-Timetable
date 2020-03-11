@@ -9,4 +9,8 @@
     <string name="untilClasses">Before classes start:</string>
     <string name="untilBreak">Until the end of the pair there are:</string>
     <string name="TheDayAfterTomorrow">Day after tomorrow</string>
+    <string name="CorrectMis">Correct fucking mistake(ps dont)</string>
+    <string name="DarkMode">Turn on dark mode</string>
+    <string name="StupidName">Timetable</string>
+    <string name="TapForChoose">Click to select a group</string>
 </resources>

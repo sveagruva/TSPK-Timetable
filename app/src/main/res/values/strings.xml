@@ -8,4 +8,8 @@
     <string name="today">Сегодня</string>
     <string name="tomorrow">Завтра</string>
     <string name="TheDayAfterTomorrow">Послезавтра</string>
+    <string name="CorrectMis">Исправить опечатку</string>
+    <string name="DarkMode">Включить темную тему</string>
+    <string name="StupidName">Расписание</string>
+    <string name="TapForChoose">Нажмите для выбора группы</string>
 </resources>

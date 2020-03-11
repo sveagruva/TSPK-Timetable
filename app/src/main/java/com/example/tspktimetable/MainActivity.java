@@ -2,6 +2,7 @@ package com.example.tspktimetable;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -51,17 +52,20 @@ import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static TextView TLesson1;
-    private static TextView TLesson2;
-    private static TextView TLesson3;
-    private static TextView TLesson4;
-    private static TextView TLesson5;
-    private static TextView TLesson6;
-    private static TextView TLesson7;
-    private static TextView BeforeClasses;
-    private static TextView Choose;
-    private static Button Todaybtn;
-    private static Button Tomorrowbtn;
+    private  TextView TLesson1;
+    private  TextView TLesson2;
+    private  TextView TLesson3;
+    private  TextView TLesson4;
+    private  TextView TLesson5;
+    private  TextView TLesson6;
+    private  TextView TLesson7;
+    private  TextView textView;
+    private  TextView BeforeClasses;
+    private  TextView Choose;
+    private  Button Todaybtn;
+    private  Button Tomorrowbtn;
+
+    public static String currentGroup;
 
     private static ArrayList<String> Groups = new ArrayList<String>();
     private static ArrayList<String> Lessons = new ArrayList<String>();
@@ -69,28 +73,36 @@ public class MainActivity extends AppCompatActivity {
     private static int MaxHeight;
     private static String url;
     private static String text;
-    public static String currentGroup;
     private static Boolean Istoday;
     private static Boolean Change;
     private static SharedPreferences sPref;
+    private static CountDownTimer timer;
+
+
+    static{
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        SharedPreferences Switches = getSharedPreferences("Switches", MODE_PRIVATE);
+        if(Switches.getBoolean("dark", false)){
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }
+
         InizializateLessonsViews();
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
         }
-        MyReceiver receiver = new MyReceiver();
-        receiver.onReceive(this, new Intent());
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         if(Calendar.SATURDAY == calendar.get(Calendar.DAY_OF_WEEK)){
             Tomorrowbtn.setText(getString(R.string.TheDayAfterTomorrow));
         }
-        Timer();
         Change = false;
         sPref = getSharedPreferences("Group", MODE_PRIVATE);
         currentGroup = sPref.getString("Group", "0");
@@ -108,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        Timer();
         if(Change){
             main();
             Change = false;
@@ -125,6 +138,12 @@ public class MainActivity extends AppCompatActivity {
                 main();
             }
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        timer.cancel();
     }
 
     private void main(){
@@ -304,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static void ShowLessons(String timetable, int aksdfjlkadsjflkds){
+    private void ShowLessons(String timetable, int aksdfjlkadsjflkds){
         TLesson1.setText("");
         TLesson2.setText("");
         TLesson3.setText("");
@@ -362,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static void ShowLessons(String Group){
+    private void ShowLessons(String Group){
         TLesson1.setText("");
         TLesson2.setText("");
         TLesson3.setText("");
@@ -518,20 +537,19 @@ public class MainActivity extends AppCompatActivity {
         return -1;
     }
 
-    private void  Timer() {
+    private void Timer() {
         text = "";
         Date date = new Date();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
         long millislnFuture = 0;
-        millislnFuture += 65 - calendar.get(Calendar.SECOND);
+        millislnFuture += (60 - calendar.get(Calendar.SECOND))*1000;
         long hours = calendar.get(Calendar.HOUR);
         if(calendar.get(Calendar.AM_PM) == Calendar.PM){
             hours += 12;
         }
         long minutes = calendar.get(Calendar.MINUTE);
         minutes += hours * 60;
-        Log.i("ogogo", minutes + "");
         if (minutes >= 510 && minutes < 1035) {
             if (minutes < 600) { //1
                 millislnFuture += (600 - minutes) * 60000;text += getString(R.string.untilBreak);
@@ -569,13 +587,12 @@ public class MainActivity extends AppCompatActivity {
             millislnFuture += (510 - minutes) * 60000;
         }
 
-        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-        if (dayOfWeek == 7) {
+        if (calendar.get(Calendar.DAY_OF_WEEK) == 7) {
             millislnFuture += 86400000;
         }
-        new CountDownTimer(millislnFuture, 60000) {
+        millislnFuture -= 60000;
+        timer = new CountDownTimer(millislnFuture, 60000) {
             public void onTick(long millisUntilFinished) {
-                String hui_minutes = String.valueOf(millisUntilFinished / 60000 % 60);
                 BeforeClasses.setText(text + " " + (millisUntilFinished / 60000 / 60) + ":" + (millisUntilFinished / 60000 % 60 < 10 ? "0" + (millisUntilFinished / 60000 % 60) : millisUntilFinished / 60000 % 60));
             }
             public void onFinish() {
@@ -587,10 +604,16 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
-        }.start();
+        };
+        timer.start();
     }
 
     private void InizializateLessonsViews() {
+        textView = findViewById(R.id.textView);
+        SharedPreferences Switches = getSharedPreferences("Switches", MODE_PRIVATE);
+        if(Switches.getBoolean("correct", false)){
+            textView.setText(R.string.StupidName);
+        }
         TLesson1 = findViewById(R.id.lesson1);
         TLesson2 = findViewById(R.id.lesson2);
         TLesson3 = findViewById(R.id.lesson3);
@@ -646,6 +669,5 @@ public class MainActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra("arrayGroups", Groups);
         startActivity(intent);
-
     }
 }
