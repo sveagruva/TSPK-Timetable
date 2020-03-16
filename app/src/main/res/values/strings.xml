@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">ТСПК расписание</string>
     <string name="chooseGroup">Выберите группу</string>
+    <string name="chooseTeacher">Выберите преподавателя</string>
+    <string name="chooseRoom">Выберите кабинет</string>
     <string name="timetableText">Расписангие</string>
     <string name="untilPara">До начала пары осталось:</string>
     <string name="untilClasses">До начала пар осталось:</string>
@@ -11,5 +13,12 @@
     <string name="CorrectMis">Исправить опечатку</string>
     <string name="DarkMode">Включить темную тему</string>
     <string name="StupidName">Расписание</string>
-    <string name="TapForChoose">Нажмите для выбора группы</string>
+    <string name="TapForChoose">Нажмите для выбора</string>
+    <string name="GetReport">Сформировать отчет за учебный год</string>
+    <string name="back">Назад</string>
+    <string name="track">Кастомный след</string>
+    <string name="takeChance">рискнуть</string>
+    <string name="TotalTrack">итого: </string>
+    <string name="ForTrack">. за </string>
+    <string name="Days">дней</string>
 </resources>

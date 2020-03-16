@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">TSPK timetable</string>
     <string name="chooseGroup">Choose group</string>
+    <string name="chooseTeacher">Choose teacher</string>
+    <string name="chooseRoom">Choose room</string>
     <string name="timetableText">Timetable</string>
     <string name="untilPara">Before couples start:</string>
     <string name="today">Today</string>
@@ -9,8 +11,15 @@
     <string name="untilClasses">Before classes start:</string>
     <string name="untilBreak">Until the end of the pair there are:</string>
     <string name="TheDayAfterTomorrow">Day after tomorrow</string>
-    <string name="CorrectMis">Correct fucking mistake(ps dont)</string>
+    <string name="CorrectMis">Correct mistake(useless)</string>
     <string name="DarkMode">Turn on dark mode</string>
     <string name="StupidName">Timetable</string>
-    <string name="TapForChoose">Click to select a group</string>
+    <string name="TapForChoose">Click to select</string>
+    <string name="GetReport">Get report for study year</string>
+    <string name="back">back</string>
+    <string name="track">custom track</string>
+    <string name="takeChance">take a chance</string>
+    <string name="TotalTrack">"total: "</string>
+    <string name="ForTrack">". For "</string>
+    <string name="Days">days</string>
 </resources>
