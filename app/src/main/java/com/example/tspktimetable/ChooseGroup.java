@@ -19,36 +19,61 @@ public class ChooseGroup extends AppCompatActivity {
 
     private Switch dark;
     private Switch correct;
-    private Spinner spin;
+    private Spinner spingr;
+    private Spinner spinteah;
+    private Spinner spinroom;
+    private ArrayList<String> ForSpinnerGr = new ArrayList<String>();
+    private ArrayList<String> ForSpinnerTeach = new ArrayList<String>();
+    private ArrayList<String> ForSpinnerRoom = new ArrayList<String>();
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_group);
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
-        }
-        final Intent intent = getIntent();
-        final ArrayList<String> hui = intent.getStringArrayListExtra("arrayGroups");
-        final ArrayList<String> ForSpinner = new ArrayList<String>();
-        ForSpinner.clear();
-        ForSpinner.add(getString(R.string.TapForChoose));
-        ForSpinner.addAll(hui);
-        spin = findViewById(R.id.spinner);
-        ArrayAdapter<String> adp1 = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, ForSpinner);
+        if (getSupportActionBar() != null) { getSupportActionBar().hide(); }
+
+        Memory();
+
+        spingr = findViewById(R.id.spinnerGr);
+        spinteah = findViewById(R.id.spinnerTeach);
+        spinroom = findViewById(R.id.spinnerRoom);
+
+        ForSpinnerGr.clear();
+        ForSpinnerRoom.clear();
+        ForSpinnerTeach.clear();
+
+        ForSpinnerGr.add(getString(R.string.TapForChoose));
+        ForSpinnerGr.addAll(MainActivity.SGroup);
+        ForSpinnerTeach.add(getString(R.string.TapForChoose));
+        ForSpinnerTeach.addAll(MainActivity.STeachers);
+        ForSpinnerRoom.add(getString(R.string.TapForChoose));
+        ForSpinnerRoom.addAll(MainActivity.SRooms);
+
+
+        ArrayAdapter<String> adp1 = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, ForSpinnerGr);
         adp1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spin.setAdapter(adp1);
-        spin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spingr.setAdapter(adp1);
+
+        ArrayAdapter<String> adp2 = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, ForSpinnerTeach);
+        adp2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinteah.setAdapter(adp2);
+
+        ArrayAdapter<String> adp3 = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, ForSpinnerRoom);
+        adp3.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinroom.setAdapter(adp3);
+
+
+        spingr.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                if(!(ForSpinner.get(position).equals(getString(R.string.TapForChoose)))){
-                    SharedPreferences sPref = getSharedPreferences("Group", MODE_PRIVATE);
-                    SharedPreferences.Editor ed = sPref.edit();
-                    ed.putString("Group", ForSpinner.get(position));
+                if(!(ForSpinnerGr.get(position).equals(getString(R.string.TapForChoose)))){
+                    SharedPreferences.Editor ed = getSharedPreferences("Group", MODE_PRIVATE).edit();
+                    ed.putString("Value", ForSpinnerGr.get(position));
+                    ed.putString("Type", "Group");
                     ed.apply();
-                    MainActivity.currentGroup = ForSpinner.get(position);
+                    MainActivity.current = ForSpinnerGr.get(position);
                     finish();
                 }
             }
@@ -57,6 +82,46 @@ public class ChooseGroup extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parentView) {
             }
         });
+
+        spinteah.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                if(!(ForSpinnerTeach.get(position).equals(getString(R.string.TapForChoose)))){
+                    SharedPreferences.Editor ed = getSharedPreferences("Group", MODE_PRIVATE).edit();
+                    ed.putString("Value", ForSpinnerTeach.get(position));
+                    ed.putString("Type", "Teacher");
+                    ed.apply();
+                    MainActivity.current = ForSpinnerTeach.get(position);
+                    finish();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+            }
+        });
+
+        spinroom.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                if(!(ForSpinnerRoom.get(position).equals(getString(R.string.TapForChoose)))){
+                    SharedPreferences.Editor ed = getSharedPreferences("Group", MODE_PRIVATE).edit();
+                    ed.putString("Value", ForSpinnerRoom.get(position));
+                    ed.putString("Type", "Room");
+                    ed.apply();
+                    MainActivity.current = ForSpinnerRoom.get(position);
+                    finish();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+            }
+        });
+
+    }
+
+    private void Memory() {
         SharedPreferences Switches = getSharedPreferences("Switches", MODE_PRIVATE);
         dark = findViewById(R.id.darkmode);
         correct = findViewById(R.id.correct);
@@ -69,6 +134,7 @@ public class ChooseGroup extends AppCompatActivity {
         SharedPreferences.Editor Switches = getSharedPreferences("Switches", MODE_PRIVATE).edit();
         if(view == findViewById(R.id.darkmode)){
             Switches.putBoolean("dark", dark.isChecked());
+            MainActivity.NeedRecreate = true;
             if(dark.isChecked()){
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
             }else{
@@ -79,5 +145,13 @@ public class ChooseGroup extends AppCompatActivity {
             Switches.putBoolean("correct", correct.isChecked());
         }
         Switches.apply();
+    }
+
+    public void GetReport(View view) {
+        startActivity(new Intent(getApplicationContext(), Report.class));
+    }
+
+    public void finish(View view) {
+        finish();
     }
 }

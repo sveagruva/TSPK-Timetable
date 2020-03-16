@@ -17,12 +17,13 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="UnusedAttribute">
+        <activity android:name=".Report"></activity>
 
         <service
             android:name=".TSPK_timetable_service"
             android:enabled="true"
-            android:exported="true">
-        </service>
+            android:exported="true" />
+
         <receiver
             android:name=".MyReceiver"
             android:enabled="true"

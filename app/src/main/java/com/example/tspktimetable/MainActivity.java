@@ -6,48 +6,34 @@ import androidx.appcompat.app.AppCompatDelegate;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.formula.functions.Choose;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Time;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
@@ -65,7 +51,14 @@ public class MainActivity extends AppCompatActivity {
     private  Button Todaybtn;
     private  Button Tomorrowbtn;
 
-    public static String currentGroup;
+    public static String current;
+    public static String type;
+
+    public static Boolean NeedRecreate;
+
+    public static ArrayList<String> SGroup = new ArrayList<String>(); // I get it from spec file
+    public static ArrayList<String> STeachers = new ArrayList<String>();
+    public static ArrayList<String> SRooms = new ArrayList<String>();
 
     private static ArrayList<String> Groups = new ArrayList<String>();
     private static ArrayList<String> Lessons = new ArrayList<String>();
@@ -88,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        sPref = getSharedPreferences("Group", MODE_PRIVATE);
+
         SharedPreferences Switches = getSharedPreferences("Switches", MODE_PRIVATE);
         if(Switches.getBoolean("dark", false)){
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
@@ -95,32 +90,23 @@ public class MainActivity extends AppCompatActivity {
 
         InizializateLessonsViews();
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
-        }
+        if (actionBar != null) { actionBar.hide(); }
+
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-        if(Calendar.SATURDAY == calendar.get(Calendar.DAY_OF_WEEK)){
-            Tomorrowbtn.setText(getString(R.string.TheDayAfterTomorrow));
-        }
+        if(Calendar.SATURDAY == calendar.get(Calendar.DAY_OF_WEEK)){ Tomorrowbtn.setText(getString(R.string.TheDayAfterTomorrow)); }
         Change = false;
-        sPref = getSharedPreferences("Group", MODE_PRIVATE);
-        currentGroup = sPref.getString("Group", "0");
-        if(currentGroup.equals("0")){
-            if(Groups.size() != 0){
-                StartChoose();
-            }else{
-                Toast.makeText(this, "Мы не смогли получить расписание", Toast.LENGTH_SHORT).show();
-            }
-        }else{
-            Choose.setText(currentGroup);
-        }
+        NeedRecreate = false;
     }
 
     @Override
     protected void onStart() {
+
         super.onStart();
         Timer();
+        if(getSharedPreferences("Switches", MODE_PRIVATE).getBoolean("correct", false)){ textView.setText(R.string.StupidName); }
+        else{ textView.setText(R.string.timetableText); }
+
         if(Change){
             main();
             Change = false;
@@ -138,12 +124,23 @@ public class MainActivity extends AppCompatActivity {
                 main();
             }
         }
+
+        current = sPref.getString("Value", "0");
+        Choose.setText(current);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         timer.cancel();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        if(NeedRecreate){
+            recreate();
+        }
     }
 
     private void main(){
@@ -196,34 +193,73 @@ public class MainActivity extends AppCompatActivity {
             DoEverything("http://tspk.org/images/raspisanie/" + data + ".xls");
         }
 
-        currentGroup = sPref.getString("Group", "0");
-        if(currentGroup.equals("0")){
-            if(Groups.size() != 0){
-                StartChoose();
-            }else{
-                Toast.makeText(this, "Мы не смогли получить расписание", Toast.LENGTH_SHORT).show();
-            }
+
+        current = sPref.getString("Value", "0");
+        type = sPref.getString("Type", "0");
+        if(current.equals("0") || type.equals("0")){
+            StartChoose();
         }else{
-            Choose.setText(currentGroup);
-            ShowLessons(currentGroup);
+            Choose.setText(current);
+            if(type.equals("Group")){
+                ShowLessons(current);
+            }else{
+                ShowLessonsOnTheTrail(current.toLowerCase());
+            }
         }
     }
 
     private void DoEverything(String url){
         download task = new download();
+        download task1 = new download();
         try {
-
             File file = task.execute(url, getCacheDir() + "/hi.xls").get();
             Log.i("logs", url);
             Log.i("logs", file.getAbsolutePath() + " " + file.length());
             getArrays(file);
             file.delete();
-            SharedPreferences.Editor ed = sPref.edit();
-            ed.putString("Group", currentGroup);
-            ed.apply();
+
+            new File(getFilesDir() + "/data.xls").delete();
+            task1.execute("http://tspk.org/images/raspisanie/android_info/option_android.xls", getFilesDir() + "/data.xls").get();
+
         } catch (ExecutionException | InterruptedException | IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Мы не смогли получить расписание", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private Boolean getLists() throws Exception {
+        File file = new File(getFilesDir() + "/data.xls");
+        if (file.exists()) {
+            HSSFWorkbook ExcelBook = new HSSFWorkbook(new FileInputStream(file));
+            HSSFSheet Sheet = ExcelBook.getSheet(ExcelBook.getSheetName(0));
+            int max = getMaxHeight(Sheet, 1);
+            SGroup.clear();
+            SRooms.clear();
+            STeachers.clear();
+            String gr;
+            String teac;
+            String room;
+            for (int i = 1; i < max; i++) {
+                try {
+                    gr = Sheet.getRow(i).getCell(0).toString();
+                    SGroup.add(gr);
+                } catch (Exception ex) {
+                }
+                try {
+                    teac = Sheet.getRow(i).getCell(1).toString();
+                    STeachers.add(teac);
+                } catch (Exception ex) {
+                }
+                try {
+                    room = Sheet.getRow(i).getCell(2).toString();
+                    SRooms.add(room);
+                } catch (Exception ex) {
+            }
+        }
+        return true;
+        }else{
+            Toast.makeText(this, "Не должно было случиться error_1", Toast.LENGTH_SHORT).show();
+            return false;
         }
     }
 
@@ -245,12 +281,11 @@ public class MainActivity extends AppCompatActivity {
         main();
     }
 
-    private static class download extends AsyncTask<String, Void, File>{
+    static class download extends AsyncTask<String, Void, File>{
 
         @Override
         protected File doInBackground(String... strings) {
             URL url = null;
-            HttpURLConnection urlConnection = null;
             File file = new File(strings[1]);
             try {
                 url = new URL(strings[0]);
@@ -273,14 +308,14 @@ public class MainActivity extends AppCompatActivity {
         Log.i("hi", "Скачалось. Вес: " + file.length());
         HSSFWorkbook ExcelBook = new HSSFWorkbook(new FileInputStream(file));
         HSSFSheet ExcelSheet = ExcelBook.getSheet("Table 2");
-        MaxLength = GetLengnhtOfTable(ExcelSheet);
-        MaxHeight = getMaxHeight(ExcelSheet);
-        //Log.i("mx", MaxHeight + "");
+        MaxLength = GetLengthOfTable(ExcelSheet);
+        MaxHeight = getMaxHeight(ExcelSheet, 0);
+        String lesson;
         int GoRow = findStart(ExcelSheet);
         Groups.clear();
         Lessons.clear();
         if(GoRow != -1){
-            HSSFRow row = ExcelSheet.getRow(GoRow);
+            HSSFRow row;
             StringBuilder Lesson;
             while(GoRow != MaxHeight){
                 row = ExcelSheet.getRow(GoRow);
@@ -311,7 +346,17 @@ public class MainActivity extends AppCompatActivity {
                             GoDown++;
                             row1 = ExcelSheet.getRow(GoDown);
                         }
-                        Lessons.add(Lesson.toString());
+
+                        lesson = Lesson.toString();
+                        try{
+                            while (lesson.substring(lesson.length() - 1).contains("$")) {
+                                lesson = lesson.substring(0,lesson.length() - 1);
+                            }
+                        }catch (Exception ex){
+
+                        }
+
+                        Lessons.add(lesson + "$");
                         ItIsCorner += 2;
                     }
                 }
@@ -323,7 +368,64 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void ShowLessons(String timetable, int aksdfjlkadsjflkds){
+    private void ShowLessonsOnTheTrail(String Trail) {
+        ArrayList<TextView> textViews = new ArrayList<TextView>();
+        String les;
+        textViews.add(TLesson1);
+        textViews.add(TLesson2);
+        textViews.add(TLesson3);
+        textViews.add(TLesson4);
+        textViews.add(TLesson5);
+        textViews.add(TLesson6);
+        textViews.add(TLesson7);
+        ClearLessonsText();
+        String timetable = "1";
+        List<Integer> Endes = FindAllSubStrings(timetable,"$");
+        ArrayList<String> LessonsFor = new ArrayList<String>();
+        for(int number = 0; number < Lessons.size(); number++){
+            timetable = Lessons.get(number);
+            try{
+                Endes.clear();
+                Endes = FindAllSubStrings(timetable,"$");
+                les = timetable.substring(0, Endes.get(0)).toLowerCase();
+                if(!les.contains("&&")){
+                    LessonsFor.add(1 + ":  " + Groups.get(number) + " " + timetable.substring(0, Endes.get(0)));
+                }else{
+                    LessonsFor.add(1 + ":  " + Groups.get(number) + " "  + timetable.substring(2, Endes.get(0)) + " / " + timetable.substring(Endes.get(0)+2, Endes.get(1)));
+                    Endes.remove(0);
+                }
+
+                if(!les.contains(Trail)){
+                    LessonsFor.remove(LessonsFor.size() - 1);
+                }
+                try{
+                    for(int i = 1; i < 6; i++){
+                        les = timetable.substring(Endes.get(0), Endes.get(1)).toLowerCase();
+                        if(!les.contains("&&")){
+                            LessonsFor.add(i+1 + ":  "+ Groups.get(number) + " "  + timetable.substring(Endes.get(0) +1, Endes.get(1)));
+                            Endes.remove(0);
+                        }else{
+                            LessonsFor.add(i+1 + ":  " + Groups.get(number) + " " + timetable.substring(Endes.get(0) +3, Endes.get(1)) + " / " + timetable.substring(Endes.get(1)+3, Endes.get(2)));
+                            Endes.remove(0);
+                            Endes.remove(0);
+                        }
+
+                        if(!les.contains(Trail)){
+                            LessonsFor.remove(LessonsFor.size() - 1);
+                        }
+                    }
+                }catch (Exception ignored){
+
+                }
+            }catch (Exception ignored){ }
+        }
+
+        for(int i = 0; i < LessonsFor.size(); i++){
+            textViews.get(i).setText(LessonsFor.get(i));
+        }
+    }
+
+    private void ClearLessonsText(){
         TLesson1.setText("");
         TLesson2.setText("");
         TLesson3.setText("");
@@ -331,29 +433,19 @@ public class MainActivity extends AppCompatActivity {
         TLesson5.setText("");
         TLesson6.setText("");
         TLesson7.setText("");
+    }
+
+    private void ShowLessons(String timetable, int aksdfjlkadsjrerwqerflkds){
+        ArrayList<TextView> textViews = new ArrayList<TextView>();
+        textViews.add(TLesson1);
+        textViews.add(TLesson2);
+        textViews.add(TLesson3);
+        textViews.add(TLesson4);
+        textViews.add(TLesson5);
+        textViews.add(TLesson6);
+        textViews.add(TLesson7);
+        ClearLessonsText();
         try{
-            //Log.i("hi3", timetable);
-            ArrayList<TextView> textViews = new ArrayList<TextView>();
-            textViews.add(TLesson1);
-            textViews.add(TLesson2);
-            textViews.add(TLesson3);
-            textViews.add(TLesson4);
-            textViews.add(TLesson5);
-            textViews.add(TLesson6);
-            textViews.add(TLesson7);
-            String hi = timetable;
-            int count = 0;
-            while(hi.indexOf("$") == 0) {
-                hi = hi.substring(1);
-                count++;
-            }
-            while(hi.contains("$$")){
-                hi = hi.replace("$$", "$");
-            }
-            for(int i = 0; i < count; i++){
-                hi = "$" + hi;
-            }
-            timetable = hi;
             List<Integer> Endes = FindAllSubStrings(timetable,"$");
             if(!timetable.substring(0, Endes.get(0)).contains("&&")){
                 textViews.get(0).setText(1 + ":  " + timetable.substring(0, Endes.get(0)));
@@ -361,7 +453,6 @@ public class MainActivity extends AppCompatActivity {
                 textViews.get(0).setText(1 + ":  " + timetable.substring(2, Endes.get(0)) + " / " + timetable.substring(Endes.get(0)+3, Endes.get(1)));
                 Endes.remove(0);
             }
-            Log.i("hi3", timetable);
             try{
                 for(int i = 1; i < 6; i++){
                     if(!timetable.substring(Endes.get(0), Endes.get(1)).contains("&&")){
@@ -382,38 +473,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ShowLessons(String Group){
-        TLesson1.setText("");
-        TLesson2.setText("");
-        TLesson3.setText("");
-        TLesson4.setText("");
-        TLesson5.setText("");
-        TLesson6.setText("");
-        TLesson7.setText("");
+        ArrayList<TextView> textViews = new ArrayList<TextView>();
+        textViews.add(TLesson1);
+        textViews.add(TLesson2);
+        textViews.add(TLesson3);
+        textViews.add(TLesson4);
+        textViews.add(TLesson5);
+        textViews.add(TLesson6);
+        textViews.add(TLesson7);
+        ClearLessonsText();
         try{
             int id = idOfGroup(Group);
             String timetable = Lessons.get(id);
-            //Log.i("hi3", timetable);
-            ArrayList<TextView> textViews = new ArrayList<TextView>();
-            textViews.add(TLesson1);
-            textViews.add(TLesson2);
-            textViews.add(TLesson3);
-            textViews.add(TLesson4);
-            textViews.add(TLesson5);
-            textViews.add(TLesson6);
-            textViews.add(TLesson7);
-            String hi = timetable;
-            int count = 0;
-            while(hi.indexOf("$") == 0) {
-                hi = hi.substring(1);
-                count++;
-            }
-            while(hi.contains("$$")){
-                hi = hi.replace("$$", "$");
-            }
-            for(int i = 0; i < count; i++){
-                hi = "$" + hi;
-            }
-            timetable = hi;
             List<Integer> Endes = FindAllSubStrings(timetable,"$");
             if(!timetable.substring(0, Endes.get(0)).contains("&&")){
                 textViews.get(0).setText(1 + ":  " + timetable.substring(0, Endes.get(0)));
@@ -427,7 +498,8 @@ public class MainActivity extends AppCompatActivity {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(date);
             ed.putInt("day", calendar.get(Calendar.DAY_OF_MONTH));
-            ed.putString("Group", Group);
+            ed.putString("Value", Group);
+            ed.putString("Type", "Group");
             ed.apply();
             try{
                 for(int i = 1; i < 6; i++){
@@ -488,21 +560,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static int getMaxHeight(HSSFSheet sheet){
+    private static int getMaxHeight(HSSFSheet sheet, int cell){
         int len = 0;
         try{
             for(int i = 0; i < 1000; i++){
-                String hi = sheet.getRow(i).getCell(0).getStringCellValue().toString();
+                String hi = sheet.getRow(i).getCell(cell).getStringCellValue().toString();
                 len = i;
             }
         }catch (Exception ignored){
 
         }
         return len;
-
     }
 
-    private static int GetLengnhtOfTable(HSSFSheet sheet){
+    private static int GetLengthOfTable(HSSFSheet sheet){
         int len = 0;
         HSSFRow row = sheet.getRow(0);
         try{
@@ -585,10 +656,10 @@ public class MainActivity extends AppCompatActivity {
                 minutes = 0;
             }
             millislnFuture += (510 - minutes) * 60000;
-        }
 
-        if (calendar.get(Calendar.DAY_OF_WEEK) == 7) {
-            millislnFuture += 86400000;
+            if (calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY) {
+                millislnFuture += 86400000;
+            }
         }
         millislnFuture -= 60000;
         timer = new CountDownTimer(millislnFuture, 60000) {
@@ -610,10 +681,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void InizializateLessonsViews() {
         textView = findViewById(R.id.textView);
-        SharedPreferences Switches = getSharedPreferences("Switches", MODE_PRIVATE);
-        if(Switches.getBoolean("correct", false)){
-            textView.setText(R.string.StupidName);
-        }
         TLesson1 = findViewById(R.id.lesson1);
         TLesson2 = findViewById(R.id.lesson2);
         TLesson3 = findViewById(R.id.lesson3);
@@ -628,46 +695,27 @@ public class MainActivity extends AppCompatActivity {
         Choose.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 {
-                    main();
                     Change = true;
-                    if (Groups.size() != 0) {
-                        Intent intent = new Intent(getApplicationContext(), ChooseGroup.class);
-                        intent.putExtra("arrayGroups", Groups);
-                        startActivity(intent);
-                    } else {
-                        SharedPreferences sPref = getSharedPreferences("Group", MODE_PRIVATE);
-                        Istoday = sPref.getBoolean("Istoday", true);
-                        Date date = new Date();
-                        Calendar calendar = Calendar.getInstance();
-                        calendar.setTime(date);
-                        if(Istoday){
-                            Todaybtn.setEnabled(false);
-                            Tomorrowbtn.setEnabled(true);
-                            String data = calendar.get(Calendar.DAY_OF_MONTH) + (calendar.get(Calendar.MONTH) + 1) + "." +(calendar.get(Calendar.DAY_OF_MONTH) - (calendar.get(Calendar.DAY_OF_MONTH)/100)*100);
-                            DoEverything("http://tspk.org/images/raspisanie/" + data + ".xls");
-                        }else{
-                            Todaybtn.setEnabled(true);
-                            Tomorrowbtn.setEnabled(false);
-                            calendar.add(Calendar.DAY_OF_MONTH, 1);
-                            String data = calendar.get(Calendar.DAY_OF_MONTH) + (calendar.get(Calendar.MONTH) + 1) + "." +(calendar.get(Calendar.DAY_OF_MONTH) - (calendar.get(Calendar.DAY_OF_MONTH)/100)*100);
-                            DoEverything("http://tspk.org/images/raspisanie/" + data + ".xls");
-                        }
-
-                        if (Groups.size() != 0) {
-                            StartChoose();
-                        } else {
-                            Toast.makeText(MainActivity.this, "Мы не смогли получить расписание", Toast.LENGTH_SHORT).show();
-                        }
-                    }
+                    StartChoose();
                 }
             }
         });
     }
 
+    public static String SpaceInADust(String WhoAreU){
+        while(WhoAreU.contains("  ")){
+            WhoAreU = WhoAreU.replace("  ", " ");
+        }
+        return WhoAreU;
+    }
+
     private void StartChoose(){
-        Intent intent = new Intent(getApplicationContext(), ChooseGroup.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra("arrayGroups", Groups);
-        startActivity(intent);
+        try {
+            if(getLists()){
+                startActivity(new Intent(getApplicationContext(), ChooseGroup.class));
+            }
+        }catch (Exception ex){
+
+        }
     }
 }
