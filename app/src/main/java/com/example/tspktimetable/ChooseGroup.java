@@ -121,6 +121,7 @@ public class ChooseGroup extends AppCompatActivity {
 
     }
 
+
     private void Memory() {
         SharedPreferences Switches = getSharedPreferences("Switches", MODE_PRIVATE);
         dark = findViewById(R.id.darkmode);
@@ -153,5 +154,9 @@ public class ChooseGroup extends AppCompatActivity {
 
     public void finish(View view) {
         finish();
+    }
+
+    public void getHelp(View view) {
+        startActivity(new Intent(getApplicationContext(), help.class));
     }
 }

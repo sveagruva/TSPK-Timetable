@@ -22,4 +22,7 @@
     <string name="TotalTrack">"total: "</string>
     <string name="ForTrack">". For "</string>
     <string name="Days">days</string>
+    <string name="help">Help</string>
+    <string name="shoose">Choose</string>
+    <string name="github">show me your github</string>
 </resources>

@@ -21,4 +21,7 @@
     <string name="TotalTrack">итого: </string>
     <string name="ForTrack">. за </string>
     <string name="Days">дней</string>
+    <string name="help">Помощь</string>
+    <string name="shoose">Выбрать</string>
+    <string name="github">Проект на github</string>
 </resources>

@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -30,6 +31,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static com.example.tspktimetable.MainActivity.FindAllSubStrings;
+import static com.example.tspktimetable.MainActivity.GetLengthOfTable;
+import static com.example.tspktimetable.MainActivity.IsItNameOfGroup;
+import static com.example.tspktimetable.MainActivity.ItItLessons;
+import static com.example.tspktimetable.MainActivity.findStart;
+import static com.example.tspktimetable.MainActivity.getMaxHeight;
+
 public class Report extends AppCompatActivity {
 
     private Spinner spingr;
@@ -40,11 +48,6 @@ public class Report extends AppCompatActivity {
 
     private static ArrayList<String> Groups = new ArrayList<String>();
     private static ArrayList<String> Lessons = new ArrayList<String>();
-    private static int MaxLength;
-    private static int MaxHeight;
-
-    private TextView DayToDay;
-    private LinearLayout haha;
 
 
     int id ;
@@ -71,7 +74,7 @@ public class Report extends AppCompatActivity {
         String trail = editText.getText().toString().toLowerCase();
 
         if(tc.equals(getString(R.string.TapForChoose).toLowerCase())){
-            tc = ":";
+            tc = " ";
         }
 
         Calendar calendar = Calendar.getInstance();
@@ -89,8 +92,9 @@ public class Report extends AppCompatActivity {
             }
         }
 
-        haha = (LinearLayout) findViewById(R.id.LinearHAHA);
+        LinearLayout haha = (LinearLayout) findViewById(R.id.LinearHAHA);
         int count = 0;
+        TextView dayToDay;
         for(int i = 0; i < days; i++) {
             int year = ((calendar.get(Calendar.YEAR)) - (calendar.get(Calendar.YEAR) / 100) * 100);
             String month;
@@ -121,120 +125,53 @@ public class Report extends AppCompatActivity {
             file.delete();
 
 
-            DayToDay = new TextView(Report.this);
-            DayToDay.setText(data);
-            DayToDay.setGravity(Gravity.CENTER);
-            DayToDay.setTextSize(40);
-            haha.addView(DayToDay);
+            dayToDay = new TextView(Report.this);
+            dayToDay.setText(data);
+            dayToDay.setGravity(Gravity.CENTER);
+            dayToDay.setTextSize(40);
+            haha.addView(dayToDay);
 
 
             if(!gr.equals(getString(R.string.TapForChoose))){
-                try{
-                    id = idOfGroup(gr);
-                    try{
-                        timetable = "";
-                        timetable = Lessons.get(id);
-                        LessonsFor.clear();
-                        Endes.clear();
-                    }catch (Exception ex){}
-                    Endes = FindAllSubStrings(timetable,"$");
-                    try{
-                        if(!timetable.substring(0, Endes.get(0)).contains("&&")){
-                            LessonsFor.add(1 + ":  " + timetable.substring(0, Endes.get(0)));
-                        }else{
-                            LessonsFor.add(1 + ":  " + timetable.substring(2, Endes.get(0)) + " / " + timetable.substring(Endes.get(0)+3, Endes.get(1)));
-                            Endes.remove(0);
-                        }
-                        try{
-                            for(int i1 = 1; i1 < 6; i1++){
-                                if(!timetable.substring(Endes.get(0), Endes.get(1)).contains("&&")){
-                                    LessonsFor.add(i1+1 + ":  " + timetable.substring(Endes.get(0) +1, Endes.get(1)));
-                                    Endes.remove(0);
-                                }else{
-                                    LessonsFor.add(i1+1 + ":  " + timetable.substring(Endes.get(0) +3, Endes.get(1)) + " / " + timetable.substring(Endes.get(1)+3, Endes.get(2)));
-                                    Endes.remove(0);
-                                    Endes.remove(0);
-                                }
-                            }
-                        }catch (Exception ex){ }
-                    }catch (Exception ex){ }
-                }catch (Exception ex){}
-                Log.i("lessons", LessonsFor.size()  + " size, groups: " + Groups.size() + " timetable: " + timetable + " lessons: " + Lessons.size() + " " +  id );
+                //все пары группы и вывести если есть следы
 
                 try{
+                    LessonsFor = MainActivity.StringToArray(Lessons.get(idOfGroup(gr)), trail.toLowerCase(), tc.toLowerCase(), gr);
                     for(int i1 = 0; i1 < LessonsFor.size(); i1++){
-                        if(LessonsFor.get(i1).toLowerCase().contains(tc) && LessonsFor.get(i1).toLowerCase().contains(trail)) {
-                            count++;
-                            DayToDay = new TextView(Report.this);
-                            DayToDay.setText(MainActivity.SpaceInADust(LessonsFor.get(i1)));
-                            DayToDay.setGravity(Gravity.CENTER);
-                            DayToDay.setTextSize(15);
-                            haha.addView(DayToDay);
-                        }
+                        count++;
+                        dayToDay = new TextView(Report.this);
+                        dayToDay.setText(MainActivity.SpaceInADust(LessonsFor.get(i1)));
+                        dayToDay.setGravity(Gravity.CENTER);
+                        dayToDay.setTextSize(15);
+                        haha.addView(dayToDay);
                     }
-
                 }catch (Exception ex){}
                 LessonsFor.clear();
+
             }else{
                 //for all groups
 
-
-
-
                 for(int idk = 0; idk < Groups.size(); idk++){
                     try{
-                        try{
-                            timetable = "";
-                            timetable = Lessons.get(idk);
-                            LessonsFor.clear();
-                            Endes.clear();
-                        }catch (Exception ex){}
-                        Endes = FindAllSubStrings(timetable,"$");
-                        try{
-                            if(!timetable.substring(0, Endes.get(0)).contains("&&")){
-                                LessonsFor.add(1 + ":  " + timetable.substring(0, Endes.get(0)));
-                            }else{
-                                LessonsFor.add(1 + ":  " + timetable.substring(2, Endes.get(0)) + " / " + timetable.substring(Endes.get(0)+3, Endes.get(1)));
-                                Endes.remove(0);
-                            }
-                            try{
-                                for(int i1 = 1; i1 < 6; i1++){
-                                    if(!timetable.substring(Endes.get(0), Endes.get(1)).contains("&&")){
-                                        LessonsFor.add(i1+1 + ":  " + timetable.substring(Endes.get(0) +1, Endes.get(1)));
-                                        Endes.remove(0);
-                                    }else{
-                                        LessonsFor.add(i1+1 + ":  " + timetable.substring(Endes.get(0) +3, Endes.get(1)) + " / " + timetable.substring(Endes.get(1)+3, Endes.get(2)));
-                                        Endes.remove(0);
-                                        Endes.remove(0);
-                                    }
-                                }
-                            }catch (Exception ex){ }
-                        }catch (Exception ex){ }
-                    }catch (Exception ex){}
-                    //Log.i("lessons", LessonsFor.size()  + " size, groups: " + Groups.size() + " timetable: " + timetable + " lessons: " + Lessons.size() + " " +  id );
-
-                    try{
+                        LessonsFor = MainActivity.StringToArray(Lessons.get(idk),tc,trail,  Groups.get(idk));
                         for(int i1 = 0; i1 < LessonsFor.size(); i1++){
-                            if(LessonsFor.get(i1).toLowerCase().contains(tc) && LessonsFor.get(i1).toLowerCase().contains(trail)) {
-                                count++;
-                                DayToDay = new TextView(Report.this);
-                                DayToDay.setText(Groups.get(idk) + " " + MainActivity.SpaceInADust(LessonsFor.get(i1)));
-                                DayToDay.setGravity(Gravity.CENTER);
-                                DayToDay.setTextSize(15);
-                                haha.addView(DayToDay);
-                            }
+                            count++;
+                            dayToDay = new TextView(Report.this);
+                            dayToDay.setText(MainActivity.SpaceInADust(LessonsFor.get(i1)));
+                            dayToDay.setGravity(Gravity.CENTER);
+                            dayToDay.setTextSize(15);
+                            haha.addView(dayToDay);
                         }
-
                     }catch (Exception ex){}
                     LessonsFor.clear();
                 }
             }
         }
-        DayToDay = new TextView(Report.this);
-        DayToDay.setText(getString(R.string.TotalTrack) + count + getString(R.string.ForTrack) + days + getString(R.string.Days));
-        DayToDay.setGravity(Gravity.LEFT);
-        DayToDay.setTextSize(30);
-        haha.addView(DayToDay);
+        dayToDay = new TextView(Report.this);
+        dayToDay.setText(getString(R.string.TotalTrack) + count + getString(R.string.ForTrack) + days + getString(R.string.Days));
+        dayToDay.setGravity(Gravity.LEFT);
+        dayToDay.setTextSize(30);
+        haha.addView(dayToDay);
     }
 
     private static int idOfGroup(String Group){
@@ -244,19 +181,6 @@ public class Report extends AppCompatActivity {
             }
         }
         return -1;
-    }
-
-    private static List<Integer> FindAllSubStrings(String main, String small){
-        int lastIndex = 0;
-        List<Integer> result = new ArrayList<Integer>();
-        while(lastIndex != -1) {
-            lastIndex = main.indexOf(small,lastIndex);
-            if(lastIndex != -1){
-                result.add(lastIndex);
-                lastIndex += 1;
-            }
-        }
-        return result;
     }
 
     private void fillSpinners(){
@@ -290,14 +214,14 @@ public class Report extends AppCompatActivity {
             try {
                 HSSFWorkbook ExcelBook = new HSSFWorkbook(new FileInputStream(file));
                 HSSFSheet ExcelSheet = ExcelBook.getSheet("Table 2");
-                MaxLength = GetLengthOfTable(ExcelSheet);
-                MaxHeight = getMaxHeight(ExcelSheet, 0);
+                int maxLength = GetLengthOfTable(ExcelSheet);
+                int maxHeight = getMaxHeight(ExcelSheet, 0);
                 String lesson;
                 int GoRow = findStart(ExcelSheet);
                 if (GoRow != -1) {
                     HSSFRow row;
                     StringBuilder Lesson;
-                    while (GoRow != MaxHeight) {
+                    while (GoRow != maxHeight) {
                         row = ExcelSheet.getRow(GoRow);
                         if (row.getCell(0).getStringCellValue().toString().contains("Диспетчер")) {
                             break;
@@ -307,13 +231,13 @@ public class Report extends AppCompatActivity {
                             int ItIsCorner = 1;
                             int GoDown;
                             HSSFRow row1;
-                            for (int i = 0; i < MaxLength / 2; i++) {
+                            for (int i = 0; i < maxLength / 2; i++) {
                                 Groups.add(row.getCell(ItIsCorner).getStringCellValue());
                                 GoDown = GoRow;
                                 GoDown++;
                                 row1 = ExcelSheet.getRow(GoDown);
                                 Lesson = new StringBuilder();
-                                while (GoDown != MaxHeight - 1 && !(IsItNameOfGroup(row1.getCell(1).getStringCellValue()))) {
+                                while (GoDown != maxHeight - 1 && !(IsItNameOfGroup(row1.getCell(1).getStringCellValue()))) {
                                     if (ItItLessons(row1, ExcelSheet, GoDown)) {
                                         if (!row1.getCell(ItIsCorner + 1).getStringCellValue().equals("")) {
                                             //splitted cell
@@ -349,69 +273,5 @@ public class Report extends AppCompatActivity {
             } catch (Exception ex) {
             }
         }
-    }
-
-    // СДЕЛАНО САНЕЙ    CREATED BY SYANYA
-    private static Boolean IsItNameOfGroup(String maybeName){
-        if ((maybeName.length() - 1 - maybeName.indexOf('-')) == 2) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private static Boolean ItItLessons(HSSFRow row, HSSFSheet sheet, int GoDown){
-        if((row.getCell(0).getStringCellValue().contains("з") || row.getCell(0).getStringCellValue().contains("у")) && !row.getCell(0).getStringCellValue().equals(sheet.getRow(GoDown+1).getCell(0)) && row.getHeight() > 50){
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    private static int getMaxHeight(HSSFSheet sheet, int cell){
-        int len = 0;
-        try{
-            for(int i = 0; i < 1000; i++){
-                String hi = sheet.getRow(i).getCell(cell).getStringCellValue().toString();
-                len = i;
-            }
-        }catch (Exception ignored){
-
-        }
-        return len;
-    }
-
-    private static int GetLengthOfTable(HSSFSheet sheet){
-        int len = 0;
-        HSSFRow row = sheet.getRow(0);
-        try{
-            for(int i = 0; i < 1000; i++){
-                Cell cell = row.getCell(i);
-                String hi = cell.getStringCellValue();
-                len = i;
-            }
-        }catch (Exception ignored){
-
-        }
-        len++;
-        return len;
-    }
-
-    private static int findStart(HSSFSheet ExcelSheet){
-        HSSFRow row;
-        try {
-            for(int i = 0; i < 100; i++) {
-                row = ExcelSheet.getRow(i);
-                String name = row.getCell(0).getStringCellValue();
-                String name1 = "Пара";
-                if (name.equals("Пара")) {
-                    return i;
-                }
-            }
-        } catch (Exception ex) {
-            Log.i("hi",  "строка пары не найдена:" + ex);
-            return -1;
-        }
-        return -1;
     }
 }
